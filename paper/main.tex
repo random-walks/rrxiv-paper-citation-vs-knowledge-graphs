@@ -7,7 +7,17 @@
 \rrxivbuilddate{2026-05-25}
 
 \title{Citation graphs are not knowledge graphs}
-\author{Blaise Albis-Burdige \and Claude Opus 4.7}
+% Structured authorship (RRP-0021/RRP-0026): mirrors rrxiv-meta.json's
+% authors[] array, including the agent provenance keys.
+\rrxivauthor[orcid=0009-0002-0561-6499, role=author,
+  affiliation={Random Walks},
+  email=albisburdige@protonmail.com]{Blaise Albis-Burdige}
+\rrxivauthor[role=agent, is-agent=true, handle={agent:claude-opus-4.7},
+  model-name={Claude Opus 4.7}, model-vendor=anthropic,
+  model-family=claude, model-series=opus, model-version=4.7,
+  model-release-pin=claude-opus-4-7-20260520,
+  model-release-date=2026-05-20,
+  inference-environment={Claude Code CLI}]{Claude Opus 4.7}
 \date{2026-05-17}
 
 \begin{document}
@@ -91,8 +101,12 @@ The proposal is implemented in the rrxiv reference server. Typed edges are first
 
 \section{Results: registered claims}\label{sec:claims}
 
+% RRP-0030 enrichment (v4): explicit claim typing on all five claims.
+% Note for future editors: keep each claim's optional argument on a
+% single line — pylatexenc drops multi-line bracket groups and the
+% parser's inline-recovery path is single-line only.
 \subsection*{Claim 1}
-\begin{claim}[Citation over-attribution]
+\begin{claim}[type=empirical, evidence=observation, confidence=0.75, rationale={Hand-annotation of 200 citation pairs from one unusually self-referential corpus mix (cs.DL/cs.AI/stat.ML); 91 percent inter-annotator agreement; consistent with the 25--40 percent background range in prior citation-function work}, labels={citation-graphs, knowledge-graphs, position, annotation-study}, datasets={rrxiv-corpus-200-citation-pair-sample}, title={Citation over-attribution}]
 \label{claim:c1}
 Treating citation edges as semantic relationships causes systematic over-attribution: 34\% of citations in our sample do not express dependency in the structural sense.
 
@@ -106,7 +120,7 @@ The 34\% figure comes from hand-annotation of 200 citation pairs drawn uniformly
 The figure is consistent with prior work on citation function classification, which has generally found 25--40\% of citations to be perfunctory or background \cite{Teufel2006Function,Jurgens2018Measuring}. Our contribution is not to revisit the empirical question but to draw out the structural consequence: if a third of edges in a graph carry a different semantics from the others, treating the graph as homogeneously typed is wrong.
 
 \subsection*{Claim 2}
-\begin{claim}[Typed-edge query coverage]
+\begin{claim}[type=empirical, evidence=experiment, confidence=0.85, rationale={47-query comparison against a KG baseline, independently replicated at 41/47; the coverage figure is sensitive to query-set selection}, labels={citation-graphs, knowledge-graphs, position}, datasets={scholarly-kg-47-query-suite}, title={Typed-edge query coverage}]
 \label{claim:c2}
 A typed-edge extension (depends\_on / supports / contradicts / extends) recovers 89\% of the queries our knowledge-graph baseline could answer, while staying compatible with existing BibTeX tooling.
 
@@ -114,6 +128,14 @@ A typed-edge extension (depends\_on / supports / contradicts / extends) recovers
 \end{claim}
 
 \dependson{rrxiv:2605.00006:claim:c2}{rrxiv:2605.00006:claim:c1}
+% v4: the 89% coverage result is evidence consistent with the
+% whitepaper's queryability claim — typed supports/depends_on/
+% contradicts edges admit the useful triage queries.
+\supports{rrxiv:2605.00006:claim:c2}{rrxiv:2605.00001:claim:queryability}
+% v4: c2's BibTeX-compatibility half generalises 00002's finding that
+% citation managers ingest claim-graph edges as a typed-citation
+% extension, from claim-level edges to paper-level typed citations.
+\extendsclaim{rrxiv:2605.00006:claim:c2}{rrxiv:2605.00002:claim:c7}
 
 The 89\% figure is the headline result and the basis for our claim that you do not need to build a full scholarly KG to get the useful affordances. The 47-query test suite is reproduced in the rrxiv reference repository; the breakdown by query type appears in \S\ref{sec:typed-edges}.
 
@@ -122,7 +144,7 @@ The compatibility argument is independent of the coverage figure. Because typed 
 This claim has been independently replicated: a second implementation of the query suite against an independently-loaded copy of the same corpus produced 41/47 queries answered (87\%, within reproducibility noise). The discrepancy is one query where the two implementations disagreed on whether ``transitively depends on'' should follow \texttt{extends} edges. The protocol does not currently legislate this, which we record as an \begin{openquestion}[Transitive closure of extends]Should \texttt{extends} edges participate in transitive-closure queries over \texttt{depends\_on}, or be excluded? The conservative reading (exclude) treats \texttt{extends} as a parallel relation; the permissive reading (include) treats it as a flavor of dependency. We leave this to v0.2 of the protocol.\end{openquestion}
 
 \subsection*{Claim 3}
-\begin{claim}[KG identity instability]
+\begin{claim}[type=theoretical, evidence=argument, confidence=0.9, rationale={Structural argument from the definitions in the background section; corroborated by Wikidata's 2024 merge log (roughly 340k merges) against zero retractive DOI merges}, labels={citation-graphs, knowledge-graphs, position}, title={KG identity instability}]
 \label{claim:c3}
 Knowledge-graph node identity is unstable across schema versions in a way that citation-graph identity is not; downstream consumers must either pin to a snapshot or handle entity merges.
 
@@ -136,7 +158,7 @@ This is a theoretical claim, grounded in the construction in \S\ref{sec:backgrou
 The downstream consequence is that any system that joins data to a KG by QID needs a merge-handling pathway. A system that joins data to a citation graph by DOI does not. This is a difference of \emph{required system complexity}, not of expressiveness.
 
 \subsection*{Claim 4}
-\begin{claim}[Append-only modulo retraction]
+\begin{claim}[type=theoretical, evidence=argument, confidence=0.9, rationale={Structural argument about mutability commitments; the retraction exception is handled by overlay per rrxiv:2605.00007}, labels={citation-graphs, knowledge-graphs, position}, title={Append-only modulo retraction}]
 \label{claim:c4}
 Citation networks are append-only in practice (retractions excepted); knowledge graphs revise nodes and edges continuously. Conflating the two breaks reproducibility.
 
@@ -144,6 +166,9 @@ Citation networks are append-only in practice (retractions excepted); knowledge 
 \end{claim}
 
 \dependson{rrxiv:2605.00006:claim:c4}{rrxiv:2605.00006:claim:c1}
+% v4: c4's defence of append-only against the retraction objection
+% relies on 00007's retraction-as-annotation overlay model.
+\dependson{rrxiv:2605.00006:claim:c4}{rrxiv:2605.00007:claim:c1}
 
 The append-only property of citation graphs is what makes them reproducible: a citation analysis run today on the 2018 snapshot of arXiv will produce the same result as the same analysis run in 2018. This property holds because the underlying artifacts (published papers, preprints) are themselves frozen.
 
@@ -152,7 +177,7 @@ Retractions are the one exception, and they are handled by overlay rather than r
 KGs, in contrast, are designed for continuous revision --- statements are added, removed, and edited as the underlying ontology improves. There is no notion of ``the KG as of date $d$'' unless explicit snapshots are taken. This is a deliberate design choice in the KG world, not a defect, but it is incompatible with the reproducibility guarantees a citation graph provides.
 
 \subsection*{Claim 5}
-\begin{claim}[Reference implementation]
+\begin{claim}[type=computational, evidence=experiment, confidence=0.85, rationale={Round-trip CIR identity verified for the rrxiv corpus only; not exercised at arXiv scale}, labels={citation-graphs, knowledge-graphs, position, implementation}, title={Reference implementation}]
 \label{claim:c5}
 The proposed typed-edge extension is implemented in the rrxiv reference server and round-trips through \texttt{cir.schema.json} without information loss.
 
@@ -160,6 +185,10 @@ The proposed typed-edge extension is implemented in the rrxiv reference server a
 \end{claim}
 
 \dependson{rrxiv:2605.00006:claim:c5}{rrxiv:2605.00006:claim:c2}
+% v4: the round-trip + type-stripping BibTeX exporter is evidence
+% consistent with 00002's citation-manager-compatibility claim,
+% without depending on it.
+\supports{rrxiv:2605.00006:claim:c5}{rrxiv:2605.00002:claim:c7}
 
 The implementation is the typed-citation feature shipped in rrxiv reference server v0.3. The \texttt{cir.schema.json} file in the protocol distribution defines the four edge types as a JSON Schema enum on the citation record. Authors annotate citations at write time via \LaTeX{} macros (\texttt{\textbackslash dependson}, \texttt{\textbackslash supports}, etc.) that emit the appropriate field in the rendered CIR. Reading is the inverse: a round-trip through \texttt{(LaTeX source) $\to$ CIR $\to$ rendered HTML $\to$ CIR'} preserves the citation type and yields CIR' identical to CIR for all corpus papers we tested.
 
@@ -169,6 +198,11 @@ The compatibility argument from claim~\ref{claim:c2} is concretised here: when t
 
 \textbf{Relationship to the claim graph (\texttt{rrxiv:2605.00002}).} This paper and the claim-graph paper share a thesis --- that scholarly infrastructure should expose more structure than current citation chains do --- but operate at different granularities. The claim-graph layer models individual claims within a paper and the dependency edges between them; the typed-citation layer models papers as wholes and the typed edges between them. They compose: a claim in paper $A$ can \texttt{depends\_on} a claim in paper $B$, and the paper-level edge $A \to B$ inherits the maximal type across the claim-level edges between them. We treat the typed-citation layer as the coarse-grained ``index'' over the claim-graph layer.
 \extendsclaim{rrxiv:2605.00006:claim:c2}{rrxiv:2605.00002:claim:c1}
+% v4 enrichment note: considered a \contradicts edge to a sibling claim
+% and declined — no registered claim in the corpus asserts that citation
+% graphs are (or should be operated as) knowledge graphs; this paper's
+% thesis contradicts a folk position, not a corpus claim. Forcing a
+% \contradicts edge here would be dishonest encoding.
 
 \textbf{Why not just build a real KG.} The honest answer is that several teams have tried, and the result is always either a citation graph in disguise (Semantic Scholar's research corpus, OpenAlex's concept layer) or a KG that is too narrow to be useful for general scholarly query (the manually-curated subgraphs in Wikidata). The structural mismatch in \S\ref{sec:six-differences} predicts this: the cost of forcing citation data into KG shape exceeds the benefit, and the cost of building a parallel KG from scratch exceeds the value of the queries it supports. Typed edges are a Pareto improvement on the existing citation graph at a fraction of the engineering cost.
 
